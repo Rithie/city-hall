@@ -1,0 +1,44 @@
+import * as firebase from 'firebase';
+import { CREATED, update } from '/path/to/itemDuck';
+import { put, take, call } from 'redux-saga/effects';
+import { eventChannel } from 'redux-saga';
+const config = {
+   // Your firebase config
+};
+const app = firebase.initializeApp(config);
+const database = firebase.database();
+function insert(item) {
+    const newItemRef = database.ref('items').push();
+    return newItemRef.set(item);
+}
+function createEventChannel() {
+    const listener = eventChannel(
+        emit => {
+            database.ref('items')
+            .on('child_added', data => emit(data.val());
+return () => database.ref('items').off(listener);
+        }
+    );
+    
+    return listener;
+};
+function* updatedItemSaga() {
+    const updateChannel = createEventChannel();
+    while(true) {
+        const item = yield take(updateChannel);
+        yield put(updated(item));
+    }
+}
+function* createItemSaga() {
+    const action = yield take(CREATED);
+    const { item } = action.payload;
+    try {
+        yield call(insert, item);
+    } catch (e) {
+        // do something with the error, such as dispatching an error action with yield put
+    }
+}
+export default function* rootSaga() {
+    yield fork(createItemSaga);
+    yield fork(updatedItemSaga);
+}
